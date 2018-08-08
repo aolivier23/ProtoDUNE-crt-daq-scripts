@@ -31,7 +31,7 @@ if [ "$pid" != "" ]; then
 echo "Found previous instances of readout. Killing..."
 cd $DCONLINE_PATH_LOCAL/readout_linux/script
 #echo "Stopping readout at $tim" >> $DCONLINE_PATH_LOCAL/DCOV/log/stop_readout.log
-. stop.pl #TODO: Why is this not looked up with PATH?
+perl -S stop.pl #TODO: Why is this not looked up with PATH?
 #>> $DCONLINE_PATH_LOCAL/DCOV/log/stop_readout.log`
 sleep 2
 fi
