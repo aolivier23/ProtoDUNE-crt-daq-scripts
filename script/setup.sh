@@ -1,3 +1,5 @@
 #!/usr/bin/bash
-export PERL5LIB=`pwd`/../macro:$PERL5LIB;
-export PATH=`pwd`:$PATH;
+SCRIPT=`realpath ${BASH_SOURCE}`
+PATH_TO_SCRIPT=`dirname $SCRIPT`
+export PERL5LIB=$PATH_TO_SCRIPT/../macro:$PERL5LIB
+export PATH=$PATH_TO_SCRIPT:$PATH_TO_SCRIPT/../macro:$PATH
