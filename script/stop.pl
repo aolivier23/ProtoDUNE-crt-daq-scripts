@@ -18,7 +18,7 @@ while(<IN>) {
         for (@marks) { if ($cmd =~ /$_/) { $kill_it = 1; } }
         if ($kill_it) {
             #print "Killing process $pid...\n"; 
-            kill 9, $pid or print "Error killing: $!\n";
+            kill 9, $pid or print "Error killing $pid: $!\n";
         }
     }
 }
