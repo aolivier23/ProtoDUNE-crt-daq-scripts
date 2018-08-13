@@ -8,14 +8,14 @@ $run_length = 10; 		          #set runlength in seconds
 $runlength = 5;
 ##############################################################################
 
-$usb = 14;    		              # -1 = all
+$usb = 13;    		              # -1 = all
 $usemultiplefile = "yes";
 $filelength = 5;
 $laserrate = 1000;
 
 
 my $debug = 0;     # 1=debug mode, 0=mysql
-my $pmt = 16;
+my $pmt = 1;
 my $mode = "debug";
 
 my $disk = "1";                # Disk number (1 or 2)

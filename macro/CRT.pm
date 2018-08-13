@@ -2198,6 +2198,7 @@ sub check_rate {
 	$tot_usb = $tot_usb - 1;  #box do not get baseline file
     }
 
+   print "Getting baselines from files @files.\n";
 
     if($#files < $tot_usb - 1) { print "No files found \n"; }
 	foreach $tempfile (@files) {
