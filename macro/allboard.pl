@@ -16,7 +16,7 @@ use CRTfunctions;
 use usb_readout;
 use CRT; 
 
-$run_length = 240;                                 #set runlength in seconds
+$run_length = 60;                                 #set runlength in seconds
 
 $runlength = 2; #Not used locally.  Global variable, so potentially used by any other perl code that is "loaded with" this script.
 

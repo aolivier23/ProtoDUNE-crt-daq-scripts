@@ -1,8 +1,6 @@
 use strict;
 use warnings;
 
-my $dcmacropath = "/nfs/home/np04daq/crt/readout_linux/macro";
-
 my $file = shift;
 my $pmt_board = shift;
 my $otime = 0;
@@ -50,7 +48,7 @@ if($file =~ /\.csv/) {
     # }
 # } elsif($file =~ /\.bin/) {
     # # binary format \			"$file\" \"$pmt_board\" |" or die $!;
-    open IN, "/usr/bin/perl ${dcmacropath}/decode.pl \"$file\" |" or die $!;
+    open IN, "/usr/bin/perl -S decode.pl \"$file\" |" or die $!;
     while(<IN>) {
         chomp;
         next if /^\s*$/;
