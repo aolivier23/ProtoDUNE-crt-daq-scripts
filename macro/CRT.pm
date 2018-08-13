@@ -781,6 +781,7 @@ print "Baseline data taking .";
 
     tarry 2.0;
 
+    #Actual baseline data-taking happens here
     for ($pmt1 = $pmtini; $pmt1<=$pmtfin; $pmt1++){
         $usb_local = $pmttousb[$pmt1];
         $pmt_local = $pmttoboard[$pmt1];
@@ -789,7 +790,8 @@ print "Baseline data taking .";
 	tarry 1.0;             # enable trigger
 	for(my $i=1; $i<=$trigger_num+100; $i++) {
 	    com_usb $usb_local, $pmt_local, 81, 0;
-	    tarry 0.006;          # test trigger
+	    tarry 0.002;          # test trigger
+                                  #TODO: Why does making the waiting time between triggers smaller result in getting more baselines?
 	}
 	com_usb $usb_local, $pmt_local, 255, 0;             # disable trigger
 	tarry 0.5;                                         # give it some time
