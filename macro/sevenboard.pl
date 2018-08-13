@@ -45,14 +45,9 @@ my $totusb = 1;
 
 my $numbaselinetriggers = 1;
 
-
-my $online_path = "/nfs/home/np04daq/crt";
-my $DataPath2 = "/nfs/home/np04daq/crt/readout_linux/";
-
-
 my $totusbs = 1;
 
-system qq | ${online_path}\/readout_linux\/script\/start_readout.sh "readout" "1" "1" "none"|;
+system qq | start_readout.sh "readout" "1" "1" "none"|;
 
 
 #loadconfig($debug);  ####need to readout everything from database to fill structure
