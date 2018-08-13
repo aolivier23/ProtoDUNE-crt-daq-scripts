@@ -7,7 +7,7 @@ $VERSION = 1.00;
 @ISA = qw(Exporter);
 
 @EXPORT = qw(plotdata plotdatamb generatecsv generatebaseline getavg loadconfigmodule generatesummaryplot
-checkeff hashValueAscendingNum $average $elapsed_time $rate $baselines1 $DataFolder $run $dcmacropath);
+checkeff hashValueAscendingNum $average $elapsed_time $rate $baselines1 $DataFolder $run);
 
 
 @EXPORT_OK = ();
@@ -39,7 +39,7 @@ openlog('OV Run Control','','user');
 
 $OUTPUT_AUTOFLUSH = 1; #writing messages immediately to STDOUT
 
-our ($DataFolder,$run,$dcmacropath,$baselines,$baselines1,$filename,$full_path);
+our ($DataFolder,$run,$baselines,$baselines1,$filename,$full_path);
 our ($elapsed_time,$average);
 our ($pmtserialnumber,$usemaroc2gainconstantsmb,$date,$laserrate);
 our $module;
@@ -47,8 +47,6 @@ our @gainconst;
 
 $laserrate = 1000;
 our $online_path = $ENV{'DCONLINE_PATH'};
-$dcmacropath = "../macro";
-
 
 ###########################################################################################
 sub loadconfigmodule {
@@ -83,7 +81,7 @@ sub generatebaseline {
 
   #  printf("Baseline file: $filebase\n");
 
-    system qq|perl ${dcmacropath}/baselines.pl "${DataFolder}/Run_${run}/binary/" "baseline_${usb}" "${pmt}"|;
+    system qq|perl -S baselines.pl "${DataFolder}/Run_${run}/binary/" "baseline_${usb}" "${pmt}"|;
 
     system qq|mv ${DataFolder}/Run_${run}/binary/baselines.dat $dir1/baselines.dat|;
 }
@@ -136,12 +134,11 @@ if(-e "$filename") {
     #my @files = <${DataFolder}/Run_${run}/binary/1*_${usb}>; #exclude baselines
     my @files = <${DataFolder}/Run_${run}/binary/1*_*>; #Use any file in the binary directory that is not a baseline file.  
     foreach $tempfile (@files) {
-	system qq|/usr/bin/perl ${dcmacropath}/decode.pl "$tempfile" >> "${filename}"|;
+	system qq|/usr/bin/perl -S decode.pl "$tempfile" >> "${filename}"|;
     }
 }
 
 signal(${full_path}, ${filename}, $baselines, $pmt);
-# system qq|/usr/bin/perl ${dcmacropath}/signal.pl "${full_path}" "${filename}" "$baselines" "join(" ",@gain)" "$pmt" >> ${full_path}/log_${usb}_${pmt}.txt|;
 
 }
 
@@ -344,7 +341,7 @@ if(defined $baselines1) {
 
 #print "Getting signal file...$file\n";
 # parse data file
-open IN, "/usr/bin/perl ${dcmacropath}/unpacksignal.pl \"$file\" \"$pmt_board\" |" or die $!;
+open IN, "/usr/bin/perl -S unpacksignal.pl \"$file\" \"$pmt_board\" |" or die $!;
 my ($first, $last, $count, $countovf);
 $count = 0;
 $last = 0;
@@ -880,7 +877,7 @@ if(defined $baselines) {
 
 print "Getting signal file...$file\n";
 # parse data file
-open IN, "/usr/bin/perl ${dcmacropath}/unpacksignal.pl \"$file\" \"$pmt_board\" |" or die $!;
+open IN, "/usr/bin/perl -S unpacksignal.pl \"$file\" \"$pmt_board\" |" or die $!;
 my ($first, $last, $count, $countovf);
 $count = 0;
 $last = 0;
