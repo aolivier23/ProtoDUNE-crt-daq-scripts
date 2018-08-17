@@ -460,8 +460,8 @@ eval {
 			$pmtdata[$ref->[0]][$ref->[2]][4] = $ref->[5]; #Use Maroc2 gain constants
 			$pmtdata[$ref->[0]][$ref->[2]][5] = $ref->[6]; #op73
 			$pmtdata[$ref->[0]][$ref->[2]][6] = $ref->[7]; #op85
-			$pmtdata[$ref->[0]][$ref->[2]][7] = $ref->[8]; #op87
-			$pmtdata[$ref->[0]][$ref->[2]][8] = $ref->[9]; #op75
+			$pmtdata[$ref->[0]][$ref->[2]][7] = $ref->[9]; #op87
+			$pmtdata[$ref->[0]][$ref->[2]][8] = $ref->[8]; #op75
 			$pmtdata[$ref->[0]][$ref->[2]][9] = "mysql mode";  #comments
 			$pmtdata[$ref->[0]][$ref->[2]][10] = $ref->[10]; #module number    
 			if($pmtdata[$ref->[0]][$ref->[2]][2] eq "-999") {
@@ -586,7 +586,7 @@ $DACt = $pmtdata[$usbboard][$pmtnumber][3];
 $usemaroc2gainconstantsmb = $pmtdata[$usbboard][$pmtnumber][4];
 $gate = $pmtdata[$usbboard][$pmtnumber][5];
 $pipedelay = $pmtdata[$usbboard][$pmtnumber][6];
-#$force_trig = $pmtdata[$usbboard][$pmtnumber][7];
+$force_trig = $pmtdata[$usbboard][$pmtnumber][8];
 $trigger_mode = $pmtdata[$usbboard][$pmtnumber][7];
 $comments = $pmtdata[$usbboard][$pmtnumber][8];
 $module = $pmtdata[$usbboard][$pmtnumber][10];
@@ -611,8 +611,8 @@ elsif( $gate eq "alladcoff" ){
     $gateonoff = 0b01110;  
 }
 elsif( $gate eq "test" ){
-    $gateonoff = 0b01010;
-    $trigger_mode = 0b01100000;  
+    $gateonoff = 0b01110; #0b01010
+    #$trigger_mode = 0b01100000;  
 }
 elsif( $gate eq "testalladc" ){
     $gateonoff = 0b01110;
@@ -865,11 +865,14 @@ print "Baseline data taking .";
 	#print("gate=$gate,gateonoff=$gateonoff,trigger_mode=$trigger_mode\n");
 
 	com_usb $usb_local, $pmt_local, 73, $gateonoff;     # gate
-	com_usb $usb_local, $pmt_local, 85, 0b0000;         # set up pipe delay
+        print "In initializeboard(), gateonoff is $gateonoff\n";
+	com_usb $usb_local, $pmt_local, 85, $pipedelay;         # set up pipe delay
 
 	com_usb $usb_local, $pmt_local, 75, $trigger_mode;  # trigger mode ($gateonoff = 0b01011; $trigger_mode = 0b01010000;)
+        print "In initializeboard(), trigger_mode is $trigger_mode\n";
 	com_usb $usb_local, $pmt_local, 86, 0;              # edge strip mode
-	com_usb $usb_local, $pmt_local, 87, 0b01;           # force readout -> 01: 1msec, 10: 16msec, 11: 256msec
+	com_usb $usb_local, $pmt_local, 87, $force_trig;           # force readout -> 01: 1msec, 10: 16msec, 11: 256msec
+        print "In initializeboard(), force_trig is $force_trig\n";
 
 	if($usemaroc2gainconstantsmb eq "no") {
         	com_usb $usb_local, $pmt_local, 74, 0b0100000;               # default gain 
@@ -3171,7 +3174,7 @@ sub loadpmtdata_auto {
 	    $drh = DBI->install_driver("mysql");
 
 	    $sth = $dbh->prepare("SELECT USB_serial, PMT_Serial, board_number, HV, DAC_threshold,
- use_maroc2gain, gate, pipedelay, trigger_mode, gain1, gain2, gain3, gain4, 
+ use_maroc2gain, gate, pipedelay, trigger_mode, force_trig, gain1, gain2, gain3, gain4, 
 gain5, gain6, gain7, gain8, gain9, gain10, 
 gain11, gain12, gain13, gain14, gain15, gain16 , 
 gain17, gain18, gain19, gain20, gain21, gain22 , 
@@ -3195,9 +3198,10 @@ gain59, gain60, gain61, gain62, gain63, gain64 FROM $mysql_table");
 		    $pmtdata[$usb][$pmt][5] = $ref->[6];
 		    $pmtdata[$usb][$pmt][6] = $ref->[7];
 		    $pmtdata[$usb][$pmt][7] = $ref->[8]; 
+                    $pmtdata[$usb][$pmt][8] = $ref->[9];
 		    
 		    for(my $index=0;$index<64;$index++){
-			$gaindata[$usb][$pmt][$index] =  $ref->[9+$index];
+			$gaindata[$usb][$pmt][$index] =  $ref->[10+$index];
 		    }
 
                     $pmttousb[$pmt] = $usb;
@@ -3215,7 +3219,8 @@ gain59, gain60, gain61, gain62, gain63, gain64 FROM $mysql_table");
 		    print "Use of maroc2 gain constants = $pmtdata[$usb][$pmt][4]\n";
 		    print "Gate = $pmtdata[$usb][$pmt][5]\n";
 		    print "hdelay = $pmtdata[$usb][$pmt][6]\n";
-		    print "trigger_mode = $pmtdata[$usb][$pmt][7]\n\n";
+		    print "trigger_mode = $pmtdata[$usb][$pmt][7]\n";
+                    print "force_trig = $pmtdata[$usb][$pmt][8]\n\n";
 		    $DACt1 = $pmtdata[$usb][$pmt][3];
 		    $gate1 = $pmtdata[$usb][$pmt][5];
 		    $maroc2 = $pmtdata[$usb][$pmt][4];
@@ -3291,7 +3296,7 @@ goend:
 	chomp($comments = <STDIN>);
 	$pmtdata[$usb][$pmt][8] = $comments;
     }
-    $pmtdata[$usb][$pmt][8] = $comments;
+    ##$pmtdata[$usb][$pmt][8] = $comments;
     print "\n";
     print "\n";
 
@@ -3446,7 +3451,7 @@ sub initializeusb {
 	$trigger_mode = 0b00010000;
     }
     elsif( $gate eq "test" ){
-	$gateonoff = 0b01010;
+	$gateonoff = 0b11110; #0b01010
 	$trigger_mode = 0b01100000;  
     }
     elsif( $gate eq "testhit" ){
@@ -3847,7 +3852,7 @@ pmtserialnumber:
 	    $drh = DBI->install_driver("mysql");
 
         $sth = $dbh->prepare("SELECT USB_serial, PMT_Serial, board_number, HV, DAC_threshold,                                      
-         use_maroc2gain, gate, pipedelay, trigger_mode, gain1, gain2, gain3, gain4,                                                   
+         use_maroc2gain, gate, pipedelay, trigger_mode, force_trig, gain1, gain2, gain3, gain4,
         gain5, gain6, gain7, gain8, gain9, gain10,                                                                                 
         gain11, gain12, gain13, gain14, gain15, gain16 ,                                                                           
         gain17, gain18, gain19, gain20, gain21, gain22 ,                                                                           
@@ -3870,6 +3875,7 @@ pmtserialnumber:
 		    $pmtdata[$usb][$pmt][5] = $ref->[6];
 		    $pmtdata[$usb][$pmt][6] = $ref->[7];
 		    $pmtdata[$usb][$pmt][7] = $ref->[8];
+                    $pmtdata[$usb][$pmt][8] = $ref->[9];
 		    #$totalpmt++; # camillo added this on 07/01
                     $pmttousb[$totalpmt] = $usb;     #usb number
                     $pmttoboard[$totalpmt] = $pmt;
@@ -3877,7 +3883,7 @@ pmtserialnumber:
                     $structure[$usb] = 0;
 
 		    for(my $index=0;$index<64;$index++){
-			$gaindata[$usb][$pmt][$index] =  $ref->[9+$index];
+			$gaindata[$usb][$pmt][$index] =  $ref->[10+$index];
 		    }
                     #if($ref->[0] == $usb and $ref->[1] eq $pmtserialnumber and $ref->[2] == $pmt){                         #check for matching pmt_serial number and board_address                 
                     print "Found info for: PMT_serial = $ref->[1], board_number = $pmt \n\n";
@@ -3890,7 +3896,8 @@ pmtserialnumber:
 		    print "Use of maroc2 gain constants = $pmtdata[$usb][$pmt][4]\n";
 		    print "Gate = $pmtdata[$usb][$pmt][5]\n";
 		    print "hdelay = $pmtdata[$usb][$pmt][6]\n";
-		    print "trigger_mode = $pmtdata[$usb][$pmt][7]\n\n";
+		    print "trigger_mode = $pmtdata[$usb][$pmt][7]\n";
+                    print "force_trig = $pmtdata[$usb][$pmt][8]\n\n";
 		    $DACt1 = $pmtdata[$usb][$pmt][3];
 		    $gate1 = $pmtdata[$usb][$pmt][5];
 		    $maroc2 = $pmtdata[$usb][$pmt][4];

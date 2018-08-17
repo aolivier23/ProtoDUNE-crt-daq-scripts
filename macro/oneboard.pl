@@ -4,18 +4,18 @@ use CRTfunctions;
 use usb_readout;
 use CRT;
 
-$run_length = 10; 		          #set runlength in seconds
+$run_length = 5; 		          #set runlength in seconds
 $runlength = 5;
 ##############################################################################
 
-$usb = 13;    		              # -1 = all
+$usb = shift;    		              # -1 = all
 $usemultiplefile = "yes";
 $filelength = 5;
 $laserrate = 1000;
 
 
 my $debug = 0;     # 1=debug mode, 0=mysql
-my $pmt = 1;
+my $pmt = shift;
 my $mode = "debug";
 
 my $disk = "1";                # Disk number (1 or 2)
@@ -26,7 +26,7 @@ my $totalpmt = 1;
 my $totusb = 1;
 my $numbaselinetriggers = 1;
 
-$onlinetable = "online_normal_running";
+$onlinetable = "online_normal_running_1ms";
 
 
 #load data for each pmt connected
