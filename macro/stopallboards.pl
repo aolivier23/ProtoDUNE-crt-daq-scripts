@@ -58,7 +58,7 @@ my $totusb = 2; #TODO: Do I use this?  It's a local variable...
 my $numbaselinetriggers = 1;
 
 #This is the "real" totusbs I use
-$CRT::totusbs = 2;
+$CRT::totusbs = 1;
 
 loadconfig($debug);  #need to readout everything from database to fill structure
 
@@ -66,7 +66,7 @@ loadconfig($debug);  #need to readout everything from database to fill structure
 #TODO: This is a hack that circumvents what is possibly some protection against stopping 
 #      other readout jobs.  We probably need to redesign components of CRT.pm to really 
 #      solve this problem.
-for(my $running = 1; $running < $CRT::totalpmt; ++$running) #PMT indices always start at 1 when working with CRT.pm.  
+for(my $running = 1; $running <= $CRT::totalpmt; ++$running) #PMT indices always start at 1 when working with CRT.pm.  
 {
   push(@CRT::usblocal, $CRT::pmttousb[$running]); #Make sure CRT.pm knows to loop over this USB
   print "Setting USB $CRT::pmttousb[$running] status to 1.\n";

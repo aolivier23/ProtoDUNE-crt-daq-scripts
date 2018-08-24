@@ -29,4 +29,4 @@ for my $i (1..64) {
     $min = $n;
 }
 close OUT;
-print "PMT ${pmt_board}:\t hits: ${min}\n";
+print "PMT ${pmt_board}:\t baseline hits: ${min}\n";

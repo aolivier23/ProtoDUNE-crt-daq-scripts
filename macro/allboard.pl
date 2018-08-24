@@ -16,7 +16,7 @@ use CRTfunctions;
 use usb_readout;
 use CRT; 
 
-$run_length = 5;                                 #set runlength in seconds
+$run_length = 60;                                 #set runlength in seconds
 
 $runlength = 2; #Not used locally.  Global variable, so potentially used by any other perl code that is "loaded with" this script.
 
@@ -129,7 +129,7 @@ stoptakedata;
 
 #TODO: If stoptakedata becomes someone else's responsibility one day, everything below starttakedata needs to dissappear.  Maybe I could 
 #      move all of this plotting code to its' own perl script.  I'd have to find a clever way to come up with tables like pmttousb though. 
-check_rate("${DataFolder}/Run_$run_number/binary",$CRT::totalpmt,$CRT::totusbs,0,500);
+check_rate("${DataFolder}/Run_$run_number/binary",$CRT::totalpmt,$CRT::totusbs,0,400);
 
 for(my $i=1; $i<=$CRT::totalpmt; $i++) { #Change by Andrew Olivier on 7/10/2018: In CRT::loadconfig(), totalpmt is incremented BEFORE each time that 
                                     #pmttousb and pmttoboard are set.  So, the key=0 entry in each of these maps is never set.  This loop 
@@ -139,8 +139,8 @@ for(my $i=1; $i<=$CRT::totalpmt; $i++) { #Change by Andrew Olivier on 7/10/2018:
         print "usb: $CRT::pmttousb[$i]\t pmt: $CRT::pmttoboard[$i]\n";
 
         #TODO: This seems to process baselines once for each PMT instead of once for each USB.  
-        print "About to look for baseline file: ${DataFolder}/Run_${run_number}/binary/baseline_$pmttousb[$i]\n" if $debug;
-	system qq| /usr/bin/perl -S baselines.pl "${DataFolder}/Run_${run_number}/binary/" "baseline_$pmttousb[$i]" "1"|;
+        #print "About to look for baseline file: ${DataFolder}/Run_${run_number}/binary/baseline_$pmttousb[$i]\n" if $debug;
+	#system qq| /usr/bin/perl -S baselines.pl "${DataFolder}/Run_${run_number}/binary/" "baseline_$pmttousb[$i]" "1"|;
 
 	generatecsv($DataFolder,$run,$pmttousb[$i], $pmttoboard[$i]);       # Generate summary.csv file for $usb, $pmt in $DataFolder, Run $run                                                                  
         tarry 0.5;    
@@ -150,7 +150,7 @@ for(my $i=1; $i<=$CRT::totalpmt; $i++) { #Change by Andrew Olivier on 7/10/2018:
         printf("PMT %3.0d:\t Rate:%6.0d\n",$pmttoboard[$i],${rate}); # Print info                                     
 }
 
-generatesummaryplot($DataFolder,$run);
+#generatesummaryplot($DataFolder,$run); #TODO: Put this back later
 
 #TODO: The window no longer seems to close on the Linux CRT DAQ machine.  It just stops the script from finishing, so commenting it.  
 #print "DONE ! Press enter to close this window.\n";
@@ -164,8 +164,3 @@ generatesummaryplot($DataFolder,$run);
 # ($col ==5 ) { $colname = "number of photo-electrons"; }                                                         
 # ($col ==6 ) { $colname = "gain"; }                                                                              
 # ($col ==7 ) { $colname = "rate per channel"; }                         
-
-
-
-
-

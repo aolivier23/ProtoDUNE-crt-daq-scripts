@@ -450,7 +450,7 @@ eval {
 	gain41, gain42, gain43, gain44, gain45, gain46, 
 	gain47, gain48, gain49, gain50, gain51, gain52, 
 	gain53, gain54, gain55, gain56, gain57, gain58, 
-	gain59, gain60, gain61, gain62, gain63, gain64 FROM $onlinetable");
+	gain59, gain60, gain61, gain62, gain63, gain64 FROM $onlinetable ORDER BY USB_Serial");
 	$sth->execute();
 	while (my $ref = $sth->fetchrow_arrayref()) {
 			$pmtdata[$ref->[0]][$ref->[2]][0] = $ref->[1]; #pmt serial number
@@ -492,7 +492,6 @@ eval {
 
    }; #close eval
 
-print " we have total usb: $totusbs\n";
    print "Reading from MySQL failed: $@\n" if $@;
    if(!$@) { 
 #	print "\nLoading settings from MySQL table: $onlinetable\n\n";
@@ -689,7 +688,7 @@ foreach $usbread (keys(%usbhowmanybox)){
      set_inhibit_usb $usbread, -1;     # stop previous data taking (time check)
 }
 
-tarry 2;
+tarry 1;
 
 ### now the new folder and the new data path will be passed to the DAQ
 
@@ -734,25 +733,24 @@ set_run_number "$run_number";
 $run = $run_number;
 print "pmtini = $pmtini, pmtfin = $pmtfin\n";
 
-tarry 1.0;
-
 print "Baseline data taking .";
 
     for ($pmt1 = $pmtini; $pmt1<=$pmtfin; $pmt1++) {
 	if(!defined($usb_local = $pmttousb[$pmt1]) || !defined($pmt_local = $pmttoboard[$pmt1])) {
 	    print "usb_local or pmt_local not defined.\n";
 	}
+        print "usb_local=$usb_local pmt_local=$pmt_local\n";
         $usb_local = $pmttousb[$pmt1];
         $pmt_local = $pmttoboard[$pmt1];
 	getpmtdata (${usb_local},${pmt_local});
-        usb_usb $usb_local, 0, 1;                           # turn auto token ON
+        #usb_usb $usb_local, 0, 1;                           # turn auto token ON
 	com_usb $usb_local, $pmt_local, 110, 0;	           # turn off led off/on the PMT's board = 1/0
 	com_usb $usb_local, $pmt_local, 109, 1;             # vdd_fsb on
 	com_usb $usb_local, $pmt_local, 73,  0b00000;     # set up pmt module
 	com_usb $usb_local, $pmt_local, 255, 0;             # clear buffers
 	com_usb $usb_local, $pmt_local, 74,  0b0100000;     # default gain
 	com_usb $usb_local, $pmt_local, 70,  0;             # load default
-	dac_usb $usb_local, $pmt_local, 1000;               # threshold value
+	dac_usb $usb_local, $pmt_local, 700;               # threshold value
 	com_usb $usb_local, $pmt_local, 71,  0;             # rst_g to maroc
 	com_usb $usb_local, $pmt_local, 72,  0;             # write config was done twice
 	com_usb $usb_local, $pmt_local, 73,  0b00110;     # set up pmt module
@@ -763,15 +761,15 @@ print "Baseline data taking .";
 	for (my $i=0; $i<10; $i++){
 	    com_usb $usb_local, $pmt_local, 81, 0;          # avoid first packets
 	}
-	com_usb $usb_local, $pmt_local, 255, 0;             # disable trigger
+	#com_usb $usb_local, $pmt_local, 255, 0;             # disable trigger
         push(@usbbase, $usb_local);                         # prepare for set_inhibit
     }
-    tarry 2.0;                                              
+    #tarry 1.0;                                              
 
     foreach $usb_local (@usbbase) {
         if($structure[$usb_local]==0) { 
 	   set_inhibit_usb $usb_local, -3;    #  -3; created file structure
-	   tarry 1;
+	   #tarry 0.5;
 	   set_inhibit_usb $usb_local, -2;    #  -2; release inhibit for baseline
                                               #  -1; inhibit writing data
                                               #   0;  release inhibit for writing data
@@ -779,24 +777,31 @@ print "Baseline data taking .";
         }
     }
 
-    tarry 2.0;
+    #tarry 2.0;
 
     #Actual baseline data-taking happens here
     for ($pmt1 = $pmtini; $pmt1<=$pmtfin; $pmt1++){
         $usb_local = $pmttousb[$pmt1];
         $pmt_local = $pmttoboard[$pmt1];
-        usb_usb $usb_local, 0, 1;                           # turn auto token ON
+        #usb_usb $usb_local, 0, 1;                           # turn auto token ON
 	com_usb $usb_local, $pmt_local, 254, 0;
-	tarry 1.0;             # enable trigger
-	for(my $i=1; $i<=$trigger_num+100; $i++) {
+	tarry 0.04;             # enable trigger
+	for(my $i=1; $i<=$trigger_num+400; $i++) {
 	    com_usb $usb_local, $pmt_local, 81, 0;
-	    tarry 0.002;          # test trigger
+	    #tarry 0.0002;          # test trigger
                                   #TODO: Why does making the waiting time between triggers smaller result in getting more baselines?
 	}
-	com_usb $usb_local, $pmt_local, 255, 0;             # disable trigger
-	tarry 0.5;                                         # give it some time
+	#com_usb $usb_local, $pmt_local, 255, 0;             # disable trigger
+	#tarry 0.1;                                         # give it some time
     }
-    tarry 4.0;                                              # wait late packets
+    #tarry 4.0;                                              # wait late packets
+    #tarry 1.0; #Wait for late packets
+
+
+    for(my $e=0; $e<=10*2; $e++){
+           tarry 0.1;
+           print ".";
+    }
 
     foreach $usb_local (@usbbase) {
          if($structure[$usb_local] == -2) {
@@ -811,14 +816,9 @@ print "Baseline data taking .";
     my ($newsec,$newmin,$newhour,$newday,$newmonth,$newyr19,@newrest) =   localtime(time);
     $elapsed_time = ($newday-$oldday)*24*3600+ ($newhour-$oldhour)*3600 + ($newmin-$oldmin)*60 + ($newsec - $oldsec);
 
-    for(my $e=0; $e<=10*2; $e++){
-           tarry 0.1;
-           print ".";
-    }
-
     print ": $elapsed_time sec\n";
 
-    tarry 3;
+    tarry 1;
 
 
 ###now let's initialize everything for the data taking
@@ -833,7 +833,7 @@ print "Baseline data taking .";
         $usb_local = $pmttousb[$pmt1];
         $pmt_local = $pmttoboard[$pmt1];
 
-        print("Loading PMT: $pmt_local\n"); 
+        #print("Loading PMT: $pmt_local\n"); 
 
 	getpmtdata (${usb_local},${pmt_local});
 
@@ -865,14 +865,11 @@ print "Baseline data taking .";
 	#print("gate=$gate,gateonoff=$gateonoff,trigger_mode=$trigger_mode\n");
 
 	com_usb $usb_local, $pmt_local, 73, $gateonoff;     # gate
-        print "In initializeboard(), gateonoff is $gateonoff\n";
 	com_usb $usb_local, $pmt_local, 85, $pipedelay;         # set up pipe delay
 
 	com_usb $usb_local, $pmt_local, 75, $trigger_mode;  # trigger mode ($gateonoff = 0b01011; $trigger_mode = 0b01010000;)
-        print "In initializeboard(), trigger_mode is $trigger_mode\n";
 	com_usb $usb_local, $pmt_local, 86, 0;              # edge strip mode
 	com_usb $usb_local, $pmt_local, 87, $force_trig;           # force readout -> 01: 1msec, 10: 16msec, 11: 256msec
-        print "In initializeboard(), force_trig is $force_trig\n";
 
 	if($usemaroc2gainconstantsmb eq "no") {
         	com_usb $usb_local, $pmt_local, 74, 0b0100000;               # default gain 
@@ -886,8 +883,6 @@ print "Baseline data taking .";
 			com_usb $usb_local, $pmt_local, $index - 1, 2*$gain[$index]; # applying gain constants from MySQL
     		}
 	}
-
-        tarry 0.5;
 
 	com_usb $usb_local, $pmt_local, 109, 0;             		      # vdd_fsb off
 
@@ -1263,7 +1258,6 @@ sub starttakedata {
         $usb_local = $pmttousb[$pmt1];
         $pmt_local = $pmttoboard[$pmt1];
 	getpmtdata (${usb_local},${pmt_local});
-	print "usb_local=$usb_local and pmt_local=$pmt_local.\n";
 #        usb_usb $usb_local, 0, 1;                                    # auto token on
 #        com_usb $usb_local, $pmt_local, 254, 0;                      # enable trigger
         com_usb $usb_local, $pmt_local, 254, 0;                      # enable trigger
@@ -1271,7 +1265,7 @@ sub starttakedata {
         tarry 0.05;                                                  # give it some time
     }
 
-    com_usb 33, 63, 254, 0;
+    #com_usb 33, 63, 254, 0;
 
     tarry 2;
 
@@ -1381,7 +1375,6 @@ else {
         if(!defined($usb_local = $pmttousb[$pmt1]) || !defined($pmt_local = $pmttoboard[$pmt1])) {
             print "usb_local or pmt_local not defined.\n";
         }
-        print "Sending USB signals to USB $usb_local board $pmt_local.\n";
         com_usb $usb_local, $pmt_local, 255, 0;                      # disable trigger               
 	com_usb $usb_local, $pmt_local, 73, 0b00000;             
 
@@ -1405,8 +1398,6 @@ print"\n";
 #usb $usb_local,1;
 
 
-#print "usblocal contains $usblocal elements.\n";
-
 foreach $usb_local (@usblocal) {
     if($structure[$usb_local] == 1) { #TODO: How is this set?!  What does it mean?  I need it to be set correctly in stopallboards.
            print "Sending inhibit to USB $usb_local.\n";
@@ -1417,6 +1408,7 @@ foreach $usb_local (@usblocal) {
 
 
     }
+    else { print "Found USB $usb_local, but structure[$usb_local] is $structure[$usb_local].\n"; }
 }
 
 tarry 1;
@@ -2258,6 +2250,15 @@ sub check_rate {
     }
       
     my $tmptotpmts = keys(%hit_pmt);
+
+    my $pmtboard_keymax;
+    my $pmtboard_keymin;
+
+    foreach $key (sort (keys(%hit_pmt)))
+    {
+      print "PMT: $key Hits: $hit_pmt{$key}\n";
+    }
+
     if($tmptotpmts != $tot_pmt) {
 	print "Error: Number of pmts found: $tmptotpmts\tNumber of pmts expected in MySQL: $tot_pmt\n";
 #	gaibu_msg($MERROR,"Error: Number of pmts found: $tmptotpmts, Number of pmts expected in MySQL: $tot_pmt");
@@ -2267,9 +2268,11 @@ sub check_rate {
       foreach $key (sort (keys(%hit_pmt))){
          if($hit_pmt{$key}>$keymax){ 
 		$keymax = $hit_pmt{$key};
+                $pmtboard_keymax = $key;
 	 }
          if($hit_pmt{$key}<$keymin) {
 		$keymin = $hit_pmt{$key};
+                $pmtboard_keymin = $key;
          }
       }
 
@@ -2308,7 +2311,7 @@ sub check_rate {
     }
 
     if($switch and $keymin < $switch - 5) {
-	print "Error minimum number of baseline packets found is $keymin\n"; 
+	print "Error minimum number of baseline packets found is $keymin for board $pmtboard_keymin\n"; 
 	#gaibu_msg($MERROR,"Error minimum number of baseline packets found is $keymin"); 
     }
 }
