@@ -813,10 +813,10 @@ print "Baseline data taking .";
          }
     }
 
-    my ($newsec,$newmin,$newhour,$newday,$newmonth,$newyr19,@newrest) =   localtime(time);
-    $elapsed_time = ($newday-$oldday)*24*3600+ ($newhour-$oldhour)*3600 + ($newmin-$oldmin)*60 + ($newsec - $oldsec);
+    #my ($newsec,$newmin,$newhour,$newday,$newmonth,$newyr19,@newrest) =   localtime(time);
+    #$elapsed_time = ($newday-$oldday)*24*3600+ ($newhour-$oldhour)*3600 + ($newmin-$oldmin)*60 + ($newsec - $oldsec);
 
-    print ": $elapsed_time sec\n";
+    #print ": $elapsed_time sec\n";
 
     tarry 1;
 
@@ -1365,10 +1365,10 @@ else {
         $boxfin = $totalbox;
 }
 
-    my ($newsec,$newmin,$newhour,$newday,$newmonth,$newyr19,@newrest) =   localtime(time);
-    $elapsed_time = ($newday-$oldday)*24*3600+ ($newhour-$oldhour)*3600 + ($newmin-$oldmin)*60 + ($newsec - $oldsec);
+    #my ($newsec,$newmin,$newhour,$newday,$newmonth,$newyr19,@newrest) =   localtime(time);
+    #$elapsed_time = ($newday-$oldday)*24*3600+ ($newhour-$oldhour)*3600 + ($newmin-$oldmin)*60 + ($newsec - $oldsec);
 
-    print "($elapsed_time sec...)";
+    #print "($elapsed_time sec...)";
 
     for (my $pmt1 = $pmtini; $pmt1<=$pmtfin; $pmt1++){
 
@@ -1400,7 +1400,7 @@ print"\n";
 
 foreach $usb_local (@usblocal) {
     if($structure[$usb_local] == 1) { #TODO: How is this set?!  What does it mean?  I need it to be set correctly in stopallboards.
-           print "Sending inhibit to USB $usb_local.\n";
+           #print "Sending inhibit to USB $usb_local.\n";
            set_inhibit_usb $usb_local, -1;    #  -2; release inhibit for baseline
                                               #  -1; inhibit writing data
                                               #   0;  release inhibit for writing data
@@ -1408,7 +1408,7 @@ foreach $usb_local (@usblocal) {
 
 
     }
-    else { print "Found USB $usb_local, but structure[$usb_local] is $structure[$usb_local].\n"; }
+    elsif($structure[$usb_local] != -1) { print "Found USB $usb_local, but structure[$usb_local] is $structure[$usb_local].\n"; }
 }
 
 tarry 1;

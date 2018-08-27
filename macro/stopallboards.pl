@@ -69,7 +69,7 @@ loadconfig($debug);  #need to readout everything from database to fill structure
 for(my $running = 1; $running <= $CRT::totalpmt; ++$running) #PMT indices always start at 1 when working with CRT.pm.  
 {
   push(@CRT::usblocal, $CRT::pmttousb[$running]); #Make sure CRT.pm knows to loop over this USB
-  print "Setting USB $CRT::pmttousb[$running] status to 1.\n";
+  #print "Setting USB $CRT::pmttousb[$running] status to 1.\n";
   $CRT::structure[$CRT::pmttousb[$running]] = 1;
 }
 
