@@ -115,17 +115,60 @@ my $wrkDir = "/disk1/data1/CRTDAQ/DATA/Run_$CRT::run";
 system qq |ln -sfn $wrkDir ~np04daq/crt/readout_linux/DataFolder|;
 
 #Convert baseline binary files into plaintext files Matt can use
-#TODO: Does this slow down startup too much?  If so, maybe do this in a background process/different thread.  
-foreach my $pmt (1..$CRT::totalpmt) #Explicitly skip PMT 0 because CRT.pm alternates between 0-based and 1-based indexing
-{
-  my $board = $CRT::pmttoboard[$pmt];
-  my $usb = $CRT::pmttousb[$pmt];
+my $otime = 0;
+my $delta = 0;
+my @hists; #2D histogram of ADC values.  Indexed as (module, channel).
 
-  #Taken from CRTfunctions::generatebaseline()
-  system qq|perl -S baselines.pl "$wrkDir/binary/" "baseline_$usb" "$board"|;
-                                                                                                           
-  system qq|mv $wrkDir/binary/baselines.dat $wrkDir/baselines_$board.dat|;
+foreach my $file (<$wrkDir/binary/baseline_*>)
+{
+  open IN, "/usr/bin/perl -S decode.pl \"$file\" |" or die $!; 
+  while(<IN>) {
+      chomp;
+      next if /^\s*$/;
+      my @line = split /\s*,\s*/;
+      if($line[0] eq "p") {
+          shift @line;
+          my $tmp = $line[0];
+          my $mod = ($tmp >> 8) & 0x7f;
+          my $len = ($tmp & 0xff) - 4;
+          my $time = ($line[1] << 16) + $line[2];
+          if($time < $otime) { $delta++; }
+          $otime = $time;
+          $time = ($delta << 32) + $time;
+          my $type = $tmp >> 15;
+          if($type) {     # adc packet
+              $len >>= 1;
+              for my $i (0..$len-1) {
+                  my $data = $line[3 + 2 * $i];
+                  my $channel = $line[4 + 2 * $i];
+                  $hists[$mod]{$channel}{$data}++;
+              }
+              #print "0,$len,$time\n"; #TODO: What should this accomplish?  It was printed to the input file for 
+                                       #      baselines.pl before its new life here.  
+          }
+      }
+  }
 }
+
+open OUT, ">$wrkDir/baselines.dat" or die $!; 
+foreach my $pmt (0..$CRT::totalpmt-1) #Explicitly skip PMT 0 because CRT.pm alternates between 0-based and 1-based indexing
+{
+  my $min = 1000;
+  for my $i (0..63) {
+      my($x, $f);
+      my($n, $dev, $avg) = (0, 0, 0);
+      while(($x, $f) = each(%{$hists[$pmt]{$i}})) { $avg += $f * $x; $n += $f; }
+      if($n) {
+          $avg = $avg / $n;
+          while(($x, $f) = each(%{$hists[$pmt]{$i}})) { $dev += $f * (($x - $avg) ** 2); }
+          $dev = sqrt($dev / $n);
+      }
+      print OUT "$pmt,$i,$avg,$dev,$n\n";
+      $min = $n;
+  }
+  print "PMT ${pmt}:\t baseline hits: ${min}\n";
+}
+close OUT;
 
 starttakedata;
 #Don't stop taking data until another process causes data-taking to stop.  This lets Matt control the run length from an artdaq process!
