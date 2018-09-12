@@ -590,12 +590,13 @@ $trigger_mode = $pmtdata[$usbboard][$pmtnumber][7];
 $comments = $pmtdata[$usbboard][$pmtnumber][8];
 $module = $pmtdata[$usbboard][$pmtnumber][10];
 
+#Bits are: 0b(enable gate: board needs to receive a signal in order to trigger at all)(enable input: disable all input to MAROC2 chip)(if one channel triggers, read all channels)(enable ADC digitization -> 32usec dead time)(run in hit mode = no digitization -> no dead time)
 if ($gate eq "on"){
     $gateonoff = 0b11010;
 }
 elsif( $gate eq "off" ){
     $gateonoff = 0b01010;
-    $trigger_mode = 0b00010000;
+    #$trigger_mode = 0b00010000; #Don't force trigger_mode to be a hardcoded value anymore and update MySQL tables accordingly.  
 }
 elsif( $gate eq "trigger" ){
     $gateonoff = 0b01011;  #highest bit -> en_gate,en_input,en_all,en_adc,en_hit  
@@ -610,7 +611,7 @@ elsif( $gate eq "alladcoff" ){
     $gateonoff = 0b01110;  
 }
 elsif( $gate eq "test" ){
-    $gateonoff = 0b01110; #0b01010
+    $gateonoff = 0b00110; #0b01010
     #$trigger_mode = 0b01100000;  
 }
 elsif( $gate eq "testalladc" ){
@@ -860,7 +861,7 @@ print "Baseline data taking .";
 
 	com_usb $usb_local, $pmt_local, 80, 5;     # hold delay is variable. Has been fixed to 5 here	com_usb $usb_local, $pmt_local
 ##########	
-#	dac_usb $usb_local, $pmt_local, $DACt;              # threshold value
+	dac_usb $usb_local, $pmt_local, $DACt;              # threshold value
 
 	#print("gate=$gate,gateonoff=$gateonoff,trigger_mode=$trigger_mode\n");
 
@@ -3437,7 +3438,7 @@ sub initializeusb {
     }
     elsif( $gate eq "off" ){
 	$gateonoff = 0b01010;
-	$trigger_mode = 0b00010000;
+	#$trigger_mode = 0b00010000; #trigger_mode now comes from the MySQL table instead
     }
     elsif( $gate eq "trigger" ){ 
 	$gateonoff = 0b01011;
