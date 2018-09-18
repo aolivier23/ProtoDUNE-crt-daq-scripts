@@ -819,7 +819,7 @@ print "Baseline data taking .";
 
     #print ": $elapsed_time sec\n";
 
-    tarry 1;
+    tarry 3;
 
 
 ###now let's initialize everything for the data taking
