@@ -74,3 +74,4 @@ for(my $running = 1; $running <= $CRT::totalpmt; ++$running) #PMT indices always
 }
 
 stoptakedata; 
+system qq|perl -S stop.pl|; #Kill any readout processes remaining so that the run control doesn't hang.  
