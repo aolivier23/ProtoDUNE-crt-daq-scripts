@@ -611,7 +611,7 @@ elsif( $gate eq "alladcoff" ){
     $gateonoff = 0b01110;  
 }
 elsif( $gate eq "test" ){
-    $gateonoff = 0b00110; #0b01010
+    $gateonoff = 0b00110; #0b00110; #0b01010
     #$trigger_mode = 0b01100000;  
 }
 elsif( $gate eq "testalladc" ){
@@ -1386,14 +1386,13 @@ else {
 
     tarry 1;
 
-print "shutting down ";
+print "shutting down";
 
 for(my $m=0; $m<=10; $m++){
    print ".";
    tarry 0.3;
 }
 print"\n";
-#print "done\n";
 
 
 #usb $usb_local,1;
@@ -1421,8 +1420,6 @@ tarry 1;
 #foreach $tempfile (@files){
 #system qq|mv "$tempfile" "${full_path}/123_${usb}.wr"|;
 #}
-
-
 
 }
 
@@ -3455,7 +3452,7 @@ sub initializeusb {
 	$trigger_mode = 0b00010000;
     }
     elsif( $gate eq "test" ){
-	$gateonoff = 0b11110; #0b01010
+	$gateonoff = 0b01100; #0b11110; #0b01010
 	$trigger_mode = 0b01100000;  
     }
     elsif( $gate eq "testhit" ){
