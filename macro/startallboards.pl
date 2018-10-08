@@ -103,7 +103,7 @@ if($debug)
 }
 
 #TODO: Why wait 1.0s here?  Ask Camillo
-tarry 1.0;
+#tarry 1.0;
 
 initializeboard("auto",500); #TODO: 500 is number of baselines pulled off of?
 
