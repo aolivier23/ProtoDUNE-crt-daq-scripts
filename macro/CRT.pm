@@ -107,7 +107,7 @@ our $MERROR = 4;
 our $MEXCEPTION = 5;
 our $mindiskspace;
 our ($run_type,$run_comment,$run_length,$run_shifter);
-our ($pmt_local, $usb_local, $totalpmt, @pmttousb, @pmttoboard, @structure);
+our ($pmt_local, $usb_local, $usb_local1, $totalpmt, @pmttousb, @pmttoboard, @structure);
 our ($totalbox, @boxtousb, @boxtoboard);
 our ($oldsec,$oldmin,$oldhour,$oldday,$oldmonth,$oldyr19,@oldrest);
 
@@ -746,37 +746,69 @@ print "Baseline data taking .";
         $usb_local = $pmttousb[$pmt1];
         $pmt_local = $pmttoboard[$pmt1];
 	getpmtdata (${usb_local},${pmt_local});
-#        usb_usb $usb_local, 0, 1;                           # turn auto token ON
-	com_usb $usb_local, $pmt_local, 70,  0;             # load default
-	com_usb $usb_local, $pmt_local, 110, 0;	            # turn off led off/on the PMT's board = 1/0
+	usb_usb $usb_local, 0, 1;                           # auto token on
+	com_usb $usb_local, $pmt_local, 110, 1;	          # turn off the three led on the PMT's board = 1
 	com_usb $usb_local, $pmt_local, 109, 1;             # vdd_fsb on
-#	com_usb $usb_local, $pmt_local, 73,  0b00000;       # set up pmt module
-#	com_usb $usb_local, $pmt_local, 84,  255;           # set up pmt module
-	com_usb $usb_local, $pmt_local, 74,  0b0100000;     # default gain
-#	com_usb $usb_local, $pmt_local, 70,  0;             # load default
-	com_usb $usb_local, $pmt_local, 67,  0b000010;       # statea
-	com_usb $usb_local, $pmt_local, 68,  0b000000;       # stateb 
-	com_usb $usb_local, $pmt_local, 69,  0b000000;       # statec
-	com_usb $usb_local, $pmt_local, 71,  0;             # rst_g to maroc
-	com_usb $usb_local, $pmt_local, 72,  0;             # write config was done twice
-#	com_usb $usb_local, $pmt_local, 72,  0;             # write config was done twice
-	com_usb $usb_local, $pmt_local, 73,  0b00110;       # set up pmt module
-	com_usb $usb_local, $pmt_local, 87,  0;             # no force trigger
-	com_usb $usb_local, $pmt_local, 75,  0b00010000;    # set up trigger mode for module            
-	dac_usb $usb_local, $pmt_local, 1200;               # threshold value  #####it was 700 CM 10012018
+	com_usb $usb_local, $pmt_local, 73, 0b00000;        # set up pmt module
+	com_usb $usb_local, $pmt_local, 255, 0;             # clear buffers
+	com_usb $usb_local, $pmt_local, 84, 255;            # buffer size limit  
+	com_usb $usb_local, $pmt_local, 74, 0b0100000;      # default gain
+	com_usb $usb_local, $pmt_local, 70, 0;              # load default
+	com_usb $usb_local, $pmt_local, 67, 0b000010;       # statea
+	com_usb $usb_local, $pmt_local, 68, 0b000000;       # stateb 
+	com_usb $usb_local, $pmt_local, 69, 0b000000;       # statec
+	com_usb $usb_local, $pmt_local, 71, 0;              # rst_g to maroc
+	com_usb $usb_local, $pmt_local, 72, 0;              # write config
+	com_usb $usb_local, $pmt_local, 80, 5;              # hold delay is variable. Has been fixed to 5 here	
+	dac_usb $usb_local, $pmt_local, 1000;               # threshold value
+	com_usb $usb_local, $pmt_local, 73, 0b00110;        # gate alladc gate on -> 0b11110
+	#      alladc gate off-> 0b01110
+	com_usb $usb_local, $pmt_local, 85, $pipedelay;     # set up pipe delay
+	
+	com_usb $usb_local, $pmt_local, 75, 0b00010000;     # trigger mode
+	com_usb $usb_local, $pmt_local, 86, 0;              # edge strip mode is off
+	com_usb $usb_local, $pmt_local, 87, 0b00;           # force readout -> 01: 1msec, 10: 16msec, 11: 256msec
+	
+	com_usb $usb_local, $pmt_local, 74, 0b0100000;      # default gain for the 64 channels 
+	
+	tarry 0.01;
+	
+	print ".";
+
+
+##	com_usb $usb_local, $pmt_local, 70,  0;             # load default
+##	com_usb $usb_local, $pmt_local, 110, 0;	            # turn off led off/on the PMT's board = 1/0
+##	com_usb $usb_local, $pmt_local, 109, 1;             # vdd_fsb on
+##	com_usb $usb_local, $pmt_local, 74,  0b0100000;     # default gain
+##	com_usb $usb_local, $pmt_local, 67,  0b000010;       # statea
+##	com_usb $usb_local, $pmt_local, 68,  0b000000;       # stateb 
+##	com_usb $usb_local, $pmt_local, 69,  0b000000;       # statec
+##	com_usb $usb_local, $pmt_local, 71,  0;             # rst_g to maroc
+##	com_usb $usb_local, $pmt_local, 72,  0;             # write config was done twice
+##	com_usb $usb_local, $pmt_local, 72,  0;             # write config was done twice
+##	com_usb $usb_local, $pmt_local, 73,  0b00110;       # set up pmt module
+##	com_usb $usb_local, $pmt_local, 87,  0;             # no force trigger
+##	com_usb $usb_local, $pmt_local, 75,  0b00010000;    # set up trigger mode for module            
+##	dac_usb $usb_local, $pmt_local, 1200;               # threshold value  #####it was 700 CM 10012018
+
+##	com_usb $usb_local, $pmt_local, 74,  0b0100000;     # default gain
+
+##	tarry 0.01;
 
 	com_usb $usb_local, $pmt_local, 109, 0;	            # vdd_fsb off
 	com_usb $usb_local, $pmt_local, 254, 1;             # enable trigger
 
+	tarry 0.01;
+
 	for (my $i=0; $i<10; $i++){
 	    com_usb $usb_local, $pmt_local, 81, 0;          # avoid first packets
 	}
-	#com_usb $usb_local, $pmt_local, 73,  0b00000;     # set up pmt module
-	#tarry 0.02;
+	tarry 0.02;
+	com_usb $usb_local, $pmt_local, 255, 0;                      # disable trigger 
         push(@usbbase, $usb_local);                         # prepare for set_inhibit
     }
 
-    tarry 0.5;
+    tarry 0.5;  ### it was 0.5;
 
     foreach $usb_local (@usbbase) {
         if($structure[$usb_local]==0) { 
@@ -794,22 +826,27 @@ print "Baseline data taking .";
         $usb_local = $pmttousb[$pmt1];
         $pmt_local = $pmttoboard[$pmt1];
 
+	usb_usb $usb_local, 0, 1;
+	com_usb $usb_local, $pmt_local, 254, 1;                      # disable trigger 
+
 	for(my $i=1; $i<=$trigger_num; $i++) {               # removed the +400 CM 10012018
 	    com_usb $usb_local, $pmt_local, 81, 0;
 	}
 
 	print ".";
+
 	if ($pmt_local==7 || $pmt_local==15 || $pmt_local==27 || $pmt_local==31) {
-	    tarry 0.01;
-	    for(my $i=1; $i<=200; $i++) {               # removed the +400 CM 10012018
+	    for(my $i=1; $i<=100; $i++) {               # removed the +400 CM 10012018
 	        com_usb $usb_local, $pmt_local, 81, 0;
 	    }
 	}
+	com_usb $usb_local, $pmt_local, 255, 0;                      # disable trigger 
+	tarry 0.02;
    }
 
    print "\n Waiting for late packets ";
 
-    for(my $e=0; $e<=20; $e++){    ###wait for late packets
+    for(my $e=0; $e<=10; $e++){    ###wait for late packets
            tarry 0.1;
            print "*";
     }
@@ -832,8 +869,8 @@ print "Baseline data taking .";
            push(@usblocal, $usb_local);
 
 	   com_usb $usb_local, 63, 109, 0;                      # vdd_fsb off
-	   tarry 0.01;
-	   com_usb $usb_local, 63, 255, 0;                      # enable trigger 
+	   tarry 0.02;
+	   com_usb $usb_local, 63, 255, 0;                      # disable trigger 
         }
     }
 
@@ -854,43 +891,41 @@ tarry 2.;
         #print("Loading PMT: $pmt_local\n"); 
 
 	getpmtdata (${usb_local},${pmt_local});
-
-#	com_usb $usb_local, $pmt_local, 110, 1;	            # turn off the three led on the PMT's board = 1
-#	com_usb $usb_local, $pmt_local, 109, 1;             # vdd_fsb on
-#	com_usb $usb_local, $pmt_local, 73, 0b00000;        # set up pmt module
-
-#	com_usb $usb_local, $pmt_local, 84, 255;            # buffer size limit  
-#	com_usb $usb_local, $pmt_local, 74, 0b0100000;      # default gain
-#	com_usb $usb_local, $pmt_local, 70, 0;              # load default
-#	dac_usb $usb_local, $pmt_local, $DACt;              # threshold value
-
-#	com_usb $usb_local, $pmt_local, 67, 0b000010;       # statea
-#	com_usb $usb_local, $pmt_local, 68, 0b000000;       # stateb 
-#	com_usb $usb_local, $pmt_local, 69, 0b000000;       # statec
-
-#	com_usb $usb_local, $pmt_local, 71, 0;              # rst_g to maroc
-#	com_usb $usb_local, $pmt_local, 72, 0;              # write config
-#	com_usb $usb_local, $pmt_local, 72, 0;              # write config
-
-#	com_usb $usb_local, $pmt_local, 80, 5;              # hold delay is variable. Has been fixed to 5 here	com_usb $usb_local, $pmt_local
-
-	dac_usb $usb_local, $pmt_local, $DACt;              # threshold value
-
-	#print("gate=$gate,gateonoff=$gateonoff,trigger_mode=$trigger_mode\n");
-
-	com_usb $usb_local, $pmt_local, 73, $gateonoff;     # gate
-	com_usb $usb_local, $pmt_local, 85, $pipedelay;     # set up pipe delay
-
-	com_usb $usb_local, $pmt_local, 75, $trigger_mode;  # trigger mode ($gateonoff = 0b01011; $trigger_mode = 0b01010000;)
-	com_usb $usb_local, $pmt_local, 87, $force_trig;    # force readout -> 01: 1msec, 10: 16msec, 11: 256msec
-	com_usb $usb_local, $pmt_local, 86, 0;              # edge strip mode
-
-
-
-
-
-
-
+	usb_usb $usb_local, 0, 1;                           # auto token on
+	com_usb $usb_local, $pmt_local, 110, 1;	          # turn off the three led on the PMT's board = 1
+	com_usb $usb_local, $pmt_local, 109, 1;             # vdd_fsb on
+	com_usb $usb_local, $pmt_local, 73, 0b00000;        # set up pmt module
+	com_usb $usb_local, $pmt_local, 255, 0;             # clear buffers
+	com_usb $usb_local, $pmt_local, 84, 255;            # buffer size limit  
+	com_usb $usb_local, $pmt_local, 74, 0b0100000;      # default gain
+	com_usb $usb_local, $pmt_local, 70, 0;              # load default
+	com_usb $usb_local, $pmt_local, 67, 0b000010;       # statea
+	com_usb $usb_local, $pmt_local, 68, 0b000000;       # stateb 
+	com_usb $usb_local, $pmt_local, 69, 0b000000;       # statec
+	com_usb $usb_local, $pmt_local, 71, 0;              # rst_g to maroc
+	com_usb $usb_local, $pmt_local, 72, 0;              # write config
+	com_usb $usb_local, $pmt_local, 80, 5;              # hold delay is variable. Has been fixed to 5 here	
+	dac_usb $usb_local, $pmt_local, $DACt;               # threshold value
+	com_usb $usb_local, $pmt_local, 73, $gateonoff;        # gate alladc gate on -> 0b11110
+	#      alladc gate off-> 0b01110
+	com_usb $usb_local, $pmt_local, 85, $pipedelay;         # set up pipe delay
+	
+	com_usb $usb_local, $pmt_local, 75, $trigger_mode;     # trigger mode
+	com_usb $usb_local, $pmt_local, 86, 0;              # edge strip mode is off
+	com_usb $usb_local, $pmt_local, 87, $force_trig;             # force readout -> 01: 1msec, 10: 16msec, 11: 256msec
+	
+	com_usb $usb_local, $pmt_local, 74, 0b0100000;      # default gain for the 64 channels 
+	
+	tarry 0.01;
+	
+	print ".";
+	
+	com_usb $usb_local, $pmt_local, 109, 0;             # vdd_fsb off
+	
+	com_usb $usb_local, $pmt_local, 254, 1;             # enable trigger
+	
+	tarry 0.01;
+	
 	if($usemaroc2gainconstantsmb eq "no") {
         	com_usb $usb_local, $pmt_local, 74, 0b0100000;               # default gain 
         }
@@ -905,7 +940,6 @@ tarry 2.;
 	}
 
 	tarry 0.04;       
-
 
 #here create a first summary file or append to an existing one
 
@@ -1262,35 +1296,6 @@ sub starttakedata {
         $boxfin = $totalbox;
     }
 
-#    for (my $pmt1 = $pmtini; $pmt1<=$pmtfin; $pmt1++){
-
-#	if(!defined($usb_local = $pmttousb[$pmt1]) || !defined($pmt_local = $pmttoboard[$pmt1])) {
-#	    print "usb_local or pmt_local not defined.\n";
-#	}
-#        $usb_local = $pmttousb[$pmt1];
-#        $pmt_local = $pmttoboard[$pmt1];
-#	getpmtdata (${usb_local},${pmt_local});
-#        usb_usb $usb_local, 0, 1;                                    # auto token on
-#        com_usb $usb_local, $pmt_local, 254, 0;                      # enable trigger
-#        com_usb $usb_local, $pmt_local, 254, 0;                      # enable trigger
-
-#        tarry 0.02;         #CM10012018 CM moved from 0.05 to 0.02                                         # give it some time
-#    }
-
-#    tarry 1;
-
-#    for (my $box1 = $boxini; $box1<=$boxfin; $box1++){
-#
-#	if(!defined($usb_local = $boxtousb[$box1]) || !defined($pmt_local = $boxtoboard[$box1])) {
-#	    print "usb_local or pmt_local not defined.\n";
-#	}
-#	usb_usb $usb_local, 0, 1;                                    # auto token on
-#	com_usb $usb_local, $pmt_local, 254, 1;                      # enable trigger
-#        tarry 0.01;                                                  # give it some time
-#    }
-
-
-
 
     foreach $usb_local (@usblocal) {
 
@@ -1301,35 +1306,12 @@ sub starttakedata {
 	    #   0;  release inhibit for writing data
 
 	    $structure[$usb_local] = 1;
+
 	    print("USB $usb_local \t - File open for writing \n");
-	    com_usb $usb_local, 63, 109, 0;                      # vdd_fsb off
-	    tarry 0.05;
-	    com_usb $usb_local, 63, 254, 1;                      # enable trigger
-	    tarry 0.05;
+
 	}
     }
     
-##########
-#
-#    usb $usb_local, 0, 1;    ###CM 10012018 removed
-
-#    tarry 0.5;
-    
-    
-    
-#com_usb $usb_local, $pmt_local, 254, 0;
-#tarry 10;
-#com_usb $usb_local, $pmt_local, 81, 0;
-
-#tarry 3;
-#com_usb $usb_local, $pmt_local, 73, 0b00000;
-#com_usb $usb_local, $pmt_local, 255, 0; 
-
-#com_usb $usb_local, 63, 254, 0;
-
-#shut $usb_local;
-
-
 ($oldsec,$oldmin,$oldhour,$oldday,$oldmonth,$oldyr19,@oldrest) = localtime(time);
 
 print ".....Taking data .....\n";
@@ -1398,16 +1380,15 @@ else {
 
 #	com_usb $usb_local, 0, 255, 0;
 
-#        tarry 0.05;                                                  # give it some time                         
+        tarry 0.05;                                                  # give it some time                         
     }
 
-#    tarry 2;
 
 print "shutting down";
 
 for(my $m=0; $m<=8; $m++){
    print ".";
-   tarry 0.5;
+   tarry 0.2;
 }
 print"\n";
 
@@ -1415,29 +1396,52 @@ print"\n";
 #usb $usb_local,1;
 
 
-foreach $usb_local (@usblocal) {
-    if($structure[$usb_local] == 1) { #TODO: How is this set?!  What does it mean?  I need it to be set correctly in stopallboards.
-           #print "Sending inhibit to USB $usb_local.\n";
-           set_inhibit_usb $usb_local, -1;    #  -2; release inhibit for baseline
-                                              #  -1; inhibit writing data
-                                              #   0;  release inhibit for writing data
-           $structure[$usb_local] = -1;
-
-
+    foreach $usb_local (@usblocal) {
+	if($structure[$usb_local] == 1) { #TODO: How is this set?!  What does it mean?  I need it to be set correctly in stopallboards.
+	    #print "Sending inhibit to USB $usb_local.\n";
+	    set_inhibit_usb $usb_local, -1;    #  -2; release inhibit for baseline
+	                                       #  -1; inhibit writing data
+	                                       #   0;  release inhibit for writing data
+	    $structure[$usb_local] = -1;
+	    
+	    
+	}
+	elsif($structure[$usb_local] != -1) { print "Found USB $usb_local, but structure[$usb_local] is $structure[$usb_local].\n"; }
     }
-    elsif($structure[$usb_local] != -1) { print "Found USB $usb_local, but structure[$usb_local] is $structure[$usb_local].\n"; }
-}
+    
+tarry 1;
 
-#tarry 1;
+    my $file_run;
+    my $max=0;
+
+my @files_run = <${DataFolder}/Run_*>;
+
+
+foreach $file_run (@files_run) {
+  if($file_run =~ /Run_(\d+)$/) {
+    $max = $1 if $1 > $max;
+  }
+}  
+
+$run_number = sprintf("%0.7d",$max);
+
+
 
 #############
-#$full_path = "/e/h.0/localdev/readout/data1/OVDAQ/DATA/Run_${run_number}/binary";
-#my $tempfile;
-#my @files = <${full_path}/1*_${usb}*>; #exclude baselines                                       
-#foreach $tempfile (@files){
-#system qq|mv "$tempfile" "${full_path}/123_${usb}.wr"|;
-#}
 
+    $full_path = "${DataFolder}Run_${run_number}/binary";
+
+    print "$full_path \n";
+
+    my $tempfile;
+    my @files = <${full_path}/*.wr>; #exclude baselines
+                                       
+    foreach $tempfile (@files){
+	if($tempfile =~ /1(\d+)_(\d+).wr$/) {
+	    print "$tempfile\n $1,$2\n";
+	    system qq|mv "$tempfile" "${full_path}/1$1_$2"|;
+	}
+    }
 }
 
 #######################################################################################

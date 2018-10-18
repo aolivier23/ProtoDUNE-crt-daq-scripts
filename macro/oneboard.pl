@@ -19,14 +19,14 @@ my $pmt = shift;
 my $mode = "debug";
 
 my $disk = "1";                # Disk number (1 or 2)
-my $DataPath = "CRTDAQ/DATA/";
+$DataPath = "CRTDAQ/DATA/";
 
-my $DataFolder = "/data${disk}/${DataPath}";
+$DataFolder = "/data${disk}/${DataPath}";
 my $totalpmt = 1;
 my $totusb = 1;
 my $numbaselinetriggers = 1;
 
-$onlinetable = "online_normal_running_1ms";
+$onlinetable = "gainupdate_v1";
 
 
 #load data for each pmt connected

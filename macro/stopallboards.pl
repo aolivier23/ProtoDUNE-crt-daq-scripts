@@ -43,9 +43,9 @@ my $mode = 'mysql';
 
 #TODO: Make a symbolic link that points to DataPath and DataFolder so Matt can retrieve the data from a well-defined location
 my $disk = "1";          # Disk number (1 or 2)
-my $DataPath = "CRTDAQ/DATA/";
+$DataPath = "CRTDAQ/DATA/";
 
-my $DataFolder = "/data${disk}/${DataPath}";
+$DataFolder = "/data${disk}/${DataPath}";
 
 ###########################################################
 my $totalpmt = 7; #7; #Filled by loadconfig().  Will print a seemingly-benign error message later if this doesn't happen to be the 
