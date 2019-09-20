@@ -1,0 +1,7 @@
+Forked from code developed by Camillo Mariani, Vishvas Pandey, and Camillo's other students for the Double Chooz Outer Veto.
+
+During the summer of 2018, these ProtoDUNE collaborators upgraded this code:
+Camillo Mariani
+Vishvas Pandey
+Sarah Henry
+Andrew Olivier
